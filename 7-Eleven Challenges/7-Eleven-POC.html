@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<title>7-Eleven Google Search</title>
+	
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+	
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyBZ5Cmhf1DiSty2PRQ4HuehPhJ8U2plh2Y"></script>
+	
+	<script>
+		var map;
+		var infoWindow;
+		var request;
+		var service;
+		var markers = [];
+		
+		function initialize() {
+			var center = new google.maps.LatLng(33.0958428,-96.8058895);
+			
+			var mapProp = {
+				center: center,
+				zoom: 12
+			};
+			
+			request = {
+				location : center,
+				radius : '8000',
+				type : ['convenience_store']
+			};
+
+			infoWindow = new google.maps.InfoWindow();
+			
+			map = new google.maps.Map(document.getElementById("map"), mapProp);
+			
+			service = new google.maps.places.PlacesService(map);
+			service.nearbySearch(request, callback);
+			
+			google.maps.event.addListener(map, 'rightclick', function(event){
+				map.setCenter(event.LatLng);
+				clearResults(markers);
+				request = {
+					location : event.latLng,
+					radius : '8000',
+					type : ['convenience_store']
+				};
+				service.nearbySearch(request, callback);
+			});
+		}
+		
+		function callback(results, status) {
+			if(status == google.maps.places.PlacesServiceStatus.OK) {
+				for(var i = 0; i < results.length; i++) {
+					if(results[i].name == '7-Eleven') {
+						markers.push(createMarker(results[i]));
+					}
+				}
+			}			
+		}
+		
+		function createMarker(place) {
+			alert('Name : ' + place.name + '\nAddress: ' + place.vicinity + '\nReviews : ' + place.review + '\nRating : ' + place.rating);
+			var placeLoc = place.geometry.location;
+			var marker = new google.maps.Marker({
+				map : map,
+				position : placeLoc
+			});
+			
+			google.maps.event.addListener(marker, 'click', function(){
+				infoWindow.setContent(place.name);
+				infoWindow.open(map, this);
+			});
+			return marker;
+		}
+		
+		function clearResults(markers) {
+			for(var i = 0; i < markers.length; i++) {
+				markers[i].setMap(null);
+			}
+			markers = [];
+		}
+		
+		google.maps.event.addDomListener(window, 'load', initialize);
+	</script>
+	
+	<style>
+		html,body,div.mystyle {
+			width:800px;
+			height:400px;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<h1>7-Eleven Google Search POC</h1>
+
+	<div id="map" class="mystyle"></div>
+
+</body>
+</html>
